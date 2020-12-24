@@ -15,8 +15,10 @@ import com.aliyun.player.bean.InfoCode;
 import com.aliyun.player.nativeclass.PlayerConfig;
 import com.aliyun.player.nativeclass.TrackInfo;
 import com.aliyun.player.source.UrlSource;
+import com.aliyun.player.source.VidAuth;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
@@ -62,6 +64,8 @@ public class RNAliplayerView extends ViewGroupManager<AliSurfaceView> {
             return mName;
         }
     }
+
+    private Map<String, Object> mSource;
 
     @Override
     public void addView(AliSurfaceView parent, View child, int index) {
@@ -137,15 +141,41 @@ public class RNAliplayerView extends ViewGroupManager<AliSurfaceView> {
         }
     }
 
+    private VidAuth getAuthSource(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        Map<String, String> opts = (Map<String, String>) obj;
+        if (!opts.containsKey("vid") || !opts.containsKey("playAuth")) {
+            return null;
+        }
+
+        VidAuth auth = new VidAuth();
+        auth.setVid(opts.get("vid"));
+        auth.setPlayAuth(opts.get("playAuth"));
+        auth.setRegion(opts.containsKey("region") ? opts.get("region") : "");
+        return auth;
+    }
+
     //设置播放源
     @ReactProp(name = "source")
-    public void setSrc(AliSurfaceView view, String src) {
-        Log.i(TAG, "setSrc: " + src);
-        UrlSource source = new UrlSource();
-        source.setUri(src);
-        view.aliyunVodPlayer.setDataSource(source);
+    public void setSource(AliSurfaceView view, @Nullable ReadableMap source) {
+        mSource = source.toHashMap();
+        VidAuth auth = getAuthSource(mSource.get("auth"));
+        if (auth != null) {
+            view.aliyunVodPlayer.setDataSource(auth);
+        }
         view.aliyunVodPlayer.prepare();
     }
+
+    // public void setSrc(AliSurfaceView view, String src) {
+    //     Log.i(TAG, "setSrc: " + src);
+    //     UrlSource source = new UrlSource();
+    //     source.setUri(src);
+    //     view.aliyunVodPlayer.setDataSource(source);
+    //     view.aliyunVodPlayer.prepare();
+    // }
 
     //设置自动播放
     @ReactProp(name = "setAutoPlay")

@@ -49,10 +49,18 @@
 }
 
 //定义要暴露属性
-- (void)setSource:(NSString *)source{
+- (AVPVidAuthSource *) authSource:(NSDictionary *)opts {
+  AVPVidAuthSource *source = [[AVPVidAuthSource alloc] init];
+  source.vid = opts[@"vid"];
+  source.region = opts[@"region"];
+  source.playAuth = opts[@"playAuth"];
+  return source;
+}
+
+- (void)setSource:(NSDictionary *)source{
   _source = source;
-  AVPUrlSource * urlSource = [[AVPUrlSource alloc] urlWithString:source];
-  [self.player setUrlSource:urlSource];
+  // AVPUrlSource * urlSource = [[AVPUrlSource alloc] urlWithString:source];
+  [self.player setAuthSource:[self authSource:_source[@"auth"]]];
   [self.player prepare];
 }
 -(void)setSetAutoPlay:(BOOL)setAutoPlay{
